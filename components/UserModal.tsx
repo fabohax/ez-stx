@@ -75,21 +75,21 @@ export default function UserModal({ onClose }: UserModalProps) {
         <div className="w-full mb-4">
           <div className="flex items-center justify-between bg-white rounded-xl px-6 py-4 mb-2">
             <span className="title text-2xl font-bold">
-              {balance ?? '--'} <span className="text-lg">$</span>
+              {balance ?? '--'} <span className="text-lg">STX</span>
             </span>
-            <span className="text-base text-gray-500">Balance</span>
+            <span className="text-base text-gray-500 select-none">Balance</span>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3 w-full mb-2 font-sans text-base">
-          <button className="flex flex-col items-center justify-center bg-white rounded-xl py-4 text-sm hover:bg-gray-100 cursor-pointer select-none">
+          <button onClick={onClose} className="flex flex-col items-center justify-center bg-white rounded-xl py-4 text-sm hover:bg-gray-100 cursor-pointer select-none">
             <Bell className="mb-2" size={20} />
             Notifications
           </button>
-          <button className="flex flex-col items-center justify-center bg-white rounded-xl py-4 text-sm hover:bg-gray-100 cursor-pointer select-none">
+          <button onClick={onClose} className="flex flex-col items-center justify-center bg-white rounded-xl py-4 text-sm hover:bg-gray-100 cursor-pointer select-none">
             <Settings className="mb-2" size={20} />
             Settings
           </button>
-          <button className="flex flex-col items-center justify-center bg-white rounded-xl py-4 text-sm hover:bg-gray-100 cursor-pointer select-none">
+          <button onClick={onClose} className="flex flex-col items-center justify-center bg-white rounded-xl py-4 text-sm hover:bg-gray-100 cursor-pointer select-none">
             <HelpCircle className="mb-2" size={20} />
             Help
           </button>

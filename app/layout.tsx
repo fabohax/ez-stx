@@ -18,7 +18,7 @@ const chakraPetch = Chakra_Petch({
 });
 
 export const metadata: Metadata = {
-  title: "ezob",
+  title: "ezstx",
   description: "easy on-boarding for all",
 };
 
