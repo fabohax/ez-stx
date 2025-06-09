@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { CircleHelp, X } from 'lucide-react';
 import { createStacksAccount } from '@/lib/stacksWallet';
+import walletEmailHtml from '@/lib/walletEmailHtml';
 
 export default function GetInModal({ onClose }: { onClose?: () => void }) {
   const {
@@ -76,54 +77,12 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
       console.log('Seed Phrase:', mnemonic);
       console.log('Private Key:', stxPrivateKey);
 
-      // Compose the HTML email message
-      const message = `
-<!DOCTYPE html>
-<html>
-  <body style="background:#f6f6f6;padding:0;margin:0;margin-top:16px;margin-bottom:16px;">
-    <div style="max-width:480px;margin:40px auto;background:#fff;border-radius:12px;box-shadow:0 2px 8px #0001;padding:32px;font-family:sans-serif;">
-      <h2 style="color:#222;text-align:center;margin-top:0;">Welcome to EZ-STX</h2>
-      <p style="color:#333;font-size:16px;text-align:center;">
-        <b>Your Stacks Wallet has been created.</b>
-      </p>
-      <p style="color:#b91c1c;font-size:15px;text-align:center;">
-        <b>Important:</b> Please <b>write down</b> or securely save the following credentials. <br/>
-        <span style="color:#b91c1c;">We do <b>not</b> store or have access to your keys. If you lose them, your account cannot be recovered.</span>
-      </p>
-      <div style="background:#f3f4f6;padding:16px 20px;border-radius:8px;margin:18px 0 10px 0;">
-        <div style="margin-bottom:10px;">
-          <span style="font-weight:600;">Seed Phrase:</span>
-          <div style="font-family:monospace;font-size:15px;color:#222;background:#fff;padding:10px 12px;border-radius:6px;margin-top:6px;word-break:break-word;">
-            ${mnemonic}
-          </div>
-        </div>
-        <div style="margin-bottom:10px;">
-          <span style="font-weight:600;">Private Key:</span>
-          <div style="font-family:monospace;font-size:15px;color:#222;background:#fff;padding:10px 12px;border-radius:6px;margin-top:6px;word-break:break-all;">
-            ${stxPrivateKey}
-          </div>
-        </div>
-        <div style="display:flex;justify-content:center;width:100%;margin-top:14px;">
-          <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://ez-stx.vercel.app'}/auth/${stxPrivateKey}" 
-             style="display:block;width:100%;max-width:320px;text-align:center;padding:12px 22px;background:#2563eb;color:#fff;text-decoration:none;border-radius:7px;font-weight:600;font-size:16px;">
-            Access your account
-          </a>
-        </div>
-      </div>
-      <p style="color:#555;font-size:14px;margin-top:24px;">
-        <b>Instructions:</b><br/>
-        - Do <b>not</b> delete this email.<br/>
-        - Store your seed phrase and private key in a safe place.<br/>
-        - Anyone with these credentials can access your account.<br/>
-        - We cannot recover your account if you lose these credentials.
-      </p>
-      <p style="color:#aaa;font-size:13px;text-align:center;margin-top:32px;">
-        &copy; ${new Date().getFullYear()} EZ-STX
-      </p>
-    </div>
-  </body>
-</html>
-      `;
+      // Use imported HTML template
+      const message = walletEmailHtml({
+        mnemonic,
+        stxPrivateKey,
+        baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'https://ez-stx.vercel.app',
+      });
 
       const result: { error?: string } = await fetch('/api/send-wallet-email', {
         method: 'POST',
