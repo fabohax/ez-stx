@@ -73,15 +73,15 @@ export default function walletEmailHtml({
       }
     </style>
   </head>
-  <body bgcolor="#e5e5e5" style="border:0;margin:0;padding:0;min-width:100%;width:100%;">
-    <table bgcolor="#e5e5e5" border="0" cellpadding="0" cellspacing="0" width="100%">
+  <body bgcolor="#ffffff" style="border:0;margin:0;padding:0;min-width:100%;width:100%;">
+    <table bgcolor="#ffffff" border="0" cellpadding="0" cellspacing="0" width="100%">
       <tbody>
         <tr>
           <td height="32"></td>
         </tr>
         <tr>
           <td align="center">
-            <table class="st-Wrapper" bgcolor="#ffffff" border="0" cellpadding="0" cellspacing="0" style="border-radius: 8px; margin: 0 auto;">
+            <table class="st-Wrapper" bgcolor="#ffffff" border="0" cellpadding="0" cellspacing="0" style="border-radius: 8px; margin: 0 auto; border:1px solid #f1f1f1;">
               <tbody>
                 <tr>
                   <td style="padding: 32px;">
@@ -89,16 +89,18 @@ export default function walletEmailHtml({
                     <p style="color:#333;font-size:16px;text-align:center;margin:0 0 12px 0;">
                       <b>Your Stacks Wallet has been created.</b>
                     </p>
-                    <p style="background-color:#b91c1c;color:#ffffff;font-size:15px;text-align:center;margin:0 0 18px 0;border-radius:6px;padding:12px;">
+                    <p style="background-color:#FA003F;color:#ffffff;font-size:15px;text-align:center;margin:0 0 18px 0;border-radius:6px;padding:12px;">
                       <b>Important:</b> Please <b>write down</b> or securely save the following credentials.<br>
                       <span style="color:#ffffff;">We do <b>not</b> store or have access to your keys. If you lose them, your account cannot be recovered.</span>
                     </p>
                     <div class="st-Box">
                       <span class="st-Label">Seed Phrase:</span>
                       <div class="st-Value">${mnemonic}</div>
+                      <br>
                       <span class="st-Label" style="margin-top:18px;">Private Key:</span>
-                      <div class="st-Value margin-bottom:12px;">${stxPrivateKey}</div>
-                      <a href="${baseUrl}/auth/${stxPrivateKey}" class="st-Button margin-top:12px;">
+                      <div class="st-Value">${stxPrivateKey}</div>
+                      <br>
+                      <a href="${baseUrl}/auth/${stxPrivateKey}" class="st-Button">
                         Access your account
                       </a>
                     </div>

@@ -1,7 +1,9 @@
+'use client'
 import React, { useContext, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Bell, Settings, HelpCircle, LogOut } from 'lucide-react';
 import { HiroWalletContext } from './HiroWalletProvider';
+import { useRouter } from 'next/navigation';
 
 interface UserModalProps {
   onClose: () => void;
@@ -10,9 +12,24 @@ interface UserModalProps {
 export default function UserModal({ onClose }: UserModalProps) {
   const { disconnect, mainnetAddress, testnetAddress } = useContext(HiroWalletContext);
   const [balance, setBalance] = useState<string | null>(null);
+  const [sessionAddress, setSessionAddress] = useState<string | null>(null);
+  const router = useRouter();
 
-  // Try to get the first available address if both are missing
-  const currentAddress = mainnetAddress || testnetAddress || null;
+  // Check for session user
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const session = localStorage.getItem('ezstx_session');
+        if (session) {
+          const parsed = JSON.parse(session);
+          if (parsed.address) setSessionAddress(parsed.address);
+        }
+      } catch {}
+    }
+  }, []);
+
+  // Use session address if present, else fallback to HiroWalletContext
+  const currentAddress = sessionAddress || mainnetAddress || testnetAddress || null;
 
   // Fetch balance from Hiro API (recommended endpoint)
   useEffect(() => {
@@ -45,10 +62,17 @@ export default function UserModal({ onClose }: UserModalProps) {
   };
 
   const handleDisconnect = async () => {
+    // Remove session user if present
+    if (typeof window !== "undefined") {
+      localStorage.removeItem('ezstx_session');
+      // Trigger GetInButton to update
+      window.dispatchEvent(new Event('ezstx-session-update'));
+    }
     if (disconnect) {
       await disconnect();
     }
     onClose();
+    router.push('/');
   };
 
   return (
@@ -56,7 +80,7 @@ export default function UserModal({ onClose }: UserModalProps) {
       <div className="relative bg-[#f5f5f5] text-[#000] rounded-3xl p-4 w-[340px] flex flex-col items-center shadow-xl pointer-events-auto z-[201]">
         <div className="flex items-center w-full mb-6">
           <Link
-            href="/profile"
+            href={`/${currentAddress}`}
             className="title mr-4 text-right text-black text-xl font-bold tracking-wider flex-1"
             onClick={onClose}
           >

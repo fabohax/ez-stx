@@ -6,12 +6,17 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { CircleHelp, X } from 'lucide-react';
 import { createStacksAccount } from '@/lib/stacksWallet';
 import walletEmailHtml from '@/lib/walletEmailHtml';
+import { useRouter } from 'next/navigation';
+import { generateWallet, getStxAddress } from '@stacks/wallet-sdk';
+import { validateMnemonic as isValidMnemonic } from 'bip39';
 
 export default function GetInModal({ onClose }: { onClose?: () => void }) {
   const {
     authenticate,
     isWalletConnected,
   } = useContext(HiroWalletContext);
+
+  const router = useRouter();
 
   const [tab, setTab] = useState<'login' | 'signup'>('login');
   const [walletError, setWalletError] = useState<string | null>(null);
@@ -60,9 +65,45 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
     setShowSeedInput(true);
   };
 
-  const handleSendSeed = () => {
-    // Implement seed/private key login logic here
-    // Example: console.log(seedValue);
+  const handleSendSeed = async () => {
+    try {
+      let wallet, account, privateKey, address;
+      let valid = false;
+      const input = seedValue.trim();
+
+      // Only accept valid mnemonic (seed phrase)
+      if (isValidMnemonic(input)) {
+        try {
+          wallet = await generateWallet({ secretKey: input, password: 'default-password' });
+          account = wallet.accounts[0];
+          privateKey = account.stxPrivateKey;
+          address = getStxAddress(account, 'mainnet');
+          valid = true;
+        } catch {}
+      }
+
+      if (!valid || !address) {
+        alert('Invalid seed phrase.');
+        return;
+      }
+
+      // Save session
+      if (typeof window !== "undefined") {
+        localStorage.setItem('ezstx_session', JSON.stringify({
+          stxPrivateKey: privateKey,
+          address,
+          createdAt: Date.now(),
+        }));
+        // Trigger GetInButton to update
+        window.dispatchEvent(new Event('ezstx-session-update'));
+      }
+
+      // Redirect to profile page
+      router.push(`/${address}`);
+      if (onClose) onClose();
+    } catch {
+      alert('Invalid seed phrase.');
+    }
   };
 
   const handleSendEmail = async () => {
@@ -195,7 +236,7 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
               )}
             </div>
             {/* Use Seed Phrase */}
-            <div className="w-full px-6 mb-3">
+            <div className="w-full px-6">
               {!showSeedInput ? (
                 <button
                   className="w-full h-12 mb-3 rounded-[9px] bg-[#232323] text-white font-semibold text-base border border-[#333] cursor-pointer flex items-center px-4 hover:bg-[#272727]"
@@ -206,7 +247,7 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
                   <span className="text-center flex-1">Use Seed Phrase</span>
                 </button>
               ) : (
-                <div className="flex flex-col gap-2 w-full mb-3 rounded-[9px] bg-[#232323] text-white font-mono text-sm border border-[#333] p-0 resize-none focus:outline-none focus:ring-2 focus:ring-[#444]">
+                <div className="flex flex-col gap-2 w-full mb-3 rounded-[9px] bg-[#232323] text-white font-mono text-md border border-[#333] p-0 resize-none focus:outline-none focus:ring-2 focus:ring-[#444]">
                   <textarea
                     className="focus:outline-none p-4 h-30"
                     rows={3}
