@@ -219,7 +219,7 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
                     type="button"
                     onClick={handleSendSeed}
                   >
-                    <Image src="/send-ico.svg" alt="Send" width={18} height={18}/>
+                    <Image src="/send-ico.svg" alt="Send" width={18} height={18} className="mx-auto"/>
                   </button>
                 </div>
               )}
@@ -288,28 +288,27 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
                   <span className="text-center flex-1">Use Email</span>
                 </button>
               ) : (
-                <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-4  gap-2 mb-2">
                   <input
                     type="email"
-                    className="w-full rounded-[9px] bg-[#232323] text-white font-mono text-sm border border-[#333] p-2 focus:outline-none focus:ring-2 focus:ring-[#444]"
-                    placeholder="Enter your email"
+                    className="col-span-3 w-full rounded-[9px] bg-[#232323] text-white font-mono text-sm border border-[#333] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#444]"
+                    placeholder="Insert email"
                     value={emailValue}
                     onChange={e => setEmailValue(e.target.value)}
                   />
                   <button
-                    className="self-end flex items-center gap-2 px-4 py-2 rounded-[9px] bg-[#232323] text-white font-semibold border border-[#333] cursor-pointer hover:bg-[#272727]"
+                    className="col-span-1 flex-1 items-center gap-2 px-0 py-3 rounded-[9px] bg-[#232323] text-white font-semibold border border-[#333] cursor-pointer hover:bg-[#272727]"
                     type="button"
                     onClick={handleSendEmail}
                     disabled={!emailValue}
                   >
-                    <Image src="/send-ico.svg" alt="Send" width={18} height={18}/>
-                    <span>Send</span>
+                    <Image src="/send-ico.svg" alt="Send" width={18} height={18} className="mx-auto"/>
                   </button>
                   {emailSent && (
-                    <div className="text-green-500 text-xs mt-1 text-center">Email sent! Check your inbox.</div>
+                    <div className="col-span-4 text-green-500 text-xs mt-1 text-center">Email sent! Check your inbox.</div>
                   )}
                   {emailError && (
-                    <div className="text-red-500 text-xs mt-1 text-center">{emailError}</div>
+                    <div className="col-span-4 text-red-500 text-xs mt-1 text-center">{emailError}</div>
                   )}
                 </div>
               )}

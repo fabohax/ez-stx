@@ -39,7 +39,6 @@ export default function walletEmailHtml({
       .st-Button {
         display: block;
         width: 100%;
-        max-width: 320px;
         margin: 24px auto 0 auto;
         padding: 14px 0;
         background: #2563eb;
@@ -86,20 +85,20 @@ export default function walletEmailHtml({
               <tbody>
                 <tr>
                   <td style="padding: 32px;">
-                    <h2 style="color:#222;text-align:center;margin-top:0;margin-bottom:16px;">Welcome to EZ-STX</h2>
+                    <h2 style="color:#222;text-align:center;margin-top:0;margin-bottom:16px;">Welcome to EZSTX</h2>
                     <p style="color:#333;font-size:16px;text-align:center;margin:0 0 12px 0;">
                       <b>Your Stacks Wallet has been created.</b>
                     </p>
-                    <p style="color:#b91c1c;font-size:15px;text-align:center;margin:0 0 18px 0;">
+                    <p style="background-color:#b91c1c;color:#ffffff;font-size:15px;text-align:center;margin:0 0 18px 0;border-radius:6px;padding:12px;">
                       <b>Important:</b> Please <b>write down</b> or securely save the following credentials.<br>
-                      <span style="color:#b91c1c;">We do <b>not</b> store or have access to your keys. If you lose them, your account cannot be recovered.</span>
+                      <span style="color:#ffffff;">We do <b>not</b> store or have access to your keys. If you lose them, your account cannot be recovered.</span>
                     </p>
                     <div class="st-Box">
                       <span class="st-Label">Seed Phrase:</span>
                       <div class="st-Value">${mnemonic}</div>
                       <span class="st-Label" style="margin-top:18px;">Private Key:</span>
-                      <div class="st-Value">${stxPrivateKey}</div>
-                      <a href="${baseUrl}/auth/${stxPrivateKey}" class="st-Button">
+                      <div class="st-Value margin-bottom:12px;">${stxPrivateKey}</div>
+                      <a href="${baseUrl}/auth/${stxPrivateKey}" class="st-Button margin-top:12px;">
                         Access your account
                       </a>
                     </div>
@@ -111,7 +110,7 @@ export default function walletEmailHtml({
                       - We cannot recover your account if you lose these credentials.
                     </p>
                     <p style="color:#aaa;font-size:13px;text-align:center;margin-top:32px;">
-                      &copy; ${new Date().getFullYear()} EZ-STX
+                      &copy; ${new Date().getFullYear()} EZSTX
                     </p>
                   </td>
                 </tr>
