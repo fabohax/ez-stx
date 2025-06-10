@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import Image from "next/image";
 import { HiroWalletContext } from './HiroWalletProvider';
 import { Button } from '@/components/ui/button';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { CircleHelp, X } from 'lucide-react';
 import { createStacksAccount } from '@/lib/stacksWallet';
 import walletEmailHtml from '@/lib/walletEmailHtml';
@@ -160,14 +160,32 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
       <div className="bg-[#181818] rounded-[21px] w-[360px] pt-8 pb-0 px-0 shadow-2xl flex flex-col items-center">
         {/* Header */}
         <div className="w-full grid grid-cols-3 gap-0 relative mb-6 px-6">
-          <button
-            onClick={onClose}
-            className="justify-start bg-none border-none text-[#555] text-sm cursor-pointer"
-            aria-label="Help"
-            type="button"
-          >
-            <CircleHelp className="h-[18px]"/>
-          </button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  className="justify-start bg-none border-none text-[#555] text-sm cursor-pointer"
+                  aria-label="Help"
+                  type="button"
+                >
+                  <CircleHelp className="h-[18px]"/>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs text-sm z-100">
+                <div>
+                  <div>
+                    Sign in or create your account using your wallet, seed phrase, or email. 
+                    <br />
+                    <span className="text-[#2563eb] underline">
+                      <a href="/support" target="_blank" rel="noopener noreferrer">
+                        Need help? Visit Support
+                      </a>
+                    </span>
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <div className="title text-center font-semibold text-lg text-white tracking-wider flex items-center justify-center select-none">
             Get In
           </div>
@@ -251,9 +269,15 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
                   <textarea
                     className="focus:outline-none p-4 h-30"
                     rows={3}
-                    placeholder="Enter your seed phrase or private key"
+                    placeholder="Enter your seed phrase"
                     value={seedValue}
                     onChange={e => setSeedValue(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendSeed();
+                      }
+                    }}
                   />
                   <button
                     className="w-full flex-1 items-center gap-2 px-4 py-2 rounded-[9px] bg-[#232323] text-white font-semibold border border-[#333] cursor-pointer hover:bg-[#272727]"
@@ -332,10 +356,16 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
                 <div className="grid grid-cols-4  gap-2 mb-2">
                   <input
                     type="email"
-                    className="col-span-3 w-full rounded-[9px] bg-[#232323] text-white font-mono text-sm border border-[#333] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#444]"
+                    className="col-span-3 w-full rounded-[9px] bg-[#232323] text-white font-mono text-md border border-[#333] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#444]"
                     placeholder="Insert email"
                     value={emailValue}
                     onChange={e => setEmailValue(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSendEmail();
+                      }
+                    }}
                   />
                   <button
                     className="col-span-1 flex-1 items-center gap-2 px-0 py-3 rounded-[9px] bg-[#232323] text-white font-semibold border border-[#333] cursor-pointer hover:bg-[#272727]"
@@ -371,7 +401,7 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
         )}
         {/* Terms */}
         <div className="w-full bg-[#232323] rounded-b-2xl text-center text-xs text-[#aaa] tracking-wider p-6 px-8">
-          By Getting In, you agree to our Terms of Service and Privacy Policy
+          By Signing In, you agree to our Terms of Service and Privacy Policy
         </div>
       </div>
     </div>
