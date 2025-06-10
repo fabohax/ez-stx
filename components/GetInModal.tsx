@@ -7,15 +7,11 @@ import { CircleHelp, X } from 'lucide-react';
 import { createStacksAccount } from '@/lib/stacksWallet';
 import walletEmailHtml from '@/lib/walletEmailHtml';
 import { useRouter } from 'next/navigation';
-import { generateWallet, getStxAddress } from '@stacks/wallet-sdk';
-import { validateMnemonic as isValidMnemonic } from 'bip39';
+import { SeedPhraseInput } from '@/components/SeedPhraseInput';
+import { validateAndGenerateWallet } from '@/lib/walletHelpers';
 
 export default function GetInModal({ onClose }: { onClose?: () => void }) {
-  const {
-    authenticate,
-    isWalletConnected,
-  } = useContext(HiroWalletContext);
-
+  const { authenticate, isWalletConnected } = useContext(HiroWalletContext);
   const router = useRouter();
 
   const [tab, setTab] = useState<'login' | 'signup'>('login');
@@ -61,44 +57,14 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
     setEmailError(null);
   };
 
-  const handleSeedPhraseLogin = () => {
-    setShowSeedInput(true);
-  };
-
   const handleSendSeed = async () => {
     try {
-      let wallet, account, privateKey, address;
-      let valid = false;
-      const input = seedValue.trim();
-
-      // Only accept valid mnemonic (seed phrase)
-      if (isValidMnemonic(input)) {
-        try {
-          wallet = await generateWallet({ secretKey: input, password: 'default-password' });
-          account = wallet.accounts[0];
-          privateKey = account.stxPrivateKey;
-          address = getStxAddress(account, 'mainnet');
-          valid = true;
-        } catch {}
-      }
-
-      if (!valid || !address) {
-        alert('Invalid seed phrase.');
-        return;
-      }
-
-      // Save session
+      const { privateKey, address } = await validateAndGenerateWallet(seedValue.trim());
+      if (!privateKey || !address) throw new Error();
       if (typeof window !== "undefined") {
-        localStorage.setItem('ezstx_session', JSON.stringify({
-          stxPrivateKey: privateKey,
-          address,
-          createdAt: Date.now(),
-        }));
-        // Trigger GetInButton to update
+        localStorage.setItem('ezstx_session', JSON.stringify({ stxPrivateKey: privateKey, address, createdAt: Date.now() }));
         window.dispatchEvent(new Event('ezstx-session-update'));
       }
-
-      // Redirect to profile page
       router.push(`/${address}`);
       if (onClose) onClose();
     } catch {
@@ -107,51 +73,30 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
   };
 
   const handleSendEmail = async () => {
-    setEmailError(null);
-    setEmailSent(false);
+    setEmailError(null); setEmailSent(false);
     try {
-      // Generate real Stacks wallet
       const { mnemonic, stxPrivateKey } = await createStacksAccount();
-
-      // Log email, seed phrase, and private key before sending
-      console.log('Email:', emailValue);
-      console.log('Seed Phrase:', mnemonic);
-      console.log('Private Key:', stxPrivateKey);
-
-      // Use imported HTML template
       const message = walletEmailHtml({
         mnemonic,
         stxPrivateKey,
         baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'https://ez-stx.vercel.app',
       });
-
       const result: { error?: string } = await fetch('/api/send-wallet-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: emailValue,
-          subject: 'Your Stacks Wallet Credentials',
-          html: message,
-        }),
+        body: JSON.stringify({ to: emailValue, subject: 'Your Stacks Wallet Credentials', html: message }),
       }).then(async res => {
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || 'Failed to send email');
-        }
+        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed to send email');
         return {};
       }).catch(e => ({ error: e.message }));
-
-      if (result.error) {
-        setEmailError(result.error || 'Failed to send email.');
-      } else {
-        setEmailSent(true);
-      }
+      if (result.error) setEmailError(result.error || 'Failed to send email.');
+      else setEmailSent(true);
     } catch (err: unknown) {
-      const errorMessage =
-        typeof err === "object" && err !== null && "message" in err && typeof (err as { message?: unknown }).message === "string"
+      setEmailError(
+        err && typeof err === "object" && "message" in err && typeof (err as { message?: unknown }).message === "string"
           ? (err as { message: string }).message
-          : "Failed to generate wallet.";
-      setEmailError(errorMessage);
+          : "Failed to generate wallet."
+      );
     }
   };
 
@@ -163,25 +108,16 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
-                  className="justify-start bg-none border-none text-[#555] text-sm cursor-pointer"
-                  aria-label="Help"
-                  type="button"
-                >
+                <button className="justify-start bg-none border-none text-[#555] text-sm cursor-pointer" aria-label="Help" type="button">
                   <CircleHelp className="h-[18px]"/>
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-xs text-sm z-100">
                 <div>
-                  <div>
-                    Sign in or create your account using your wallet, seed phrase, or email. 
-                    <br />
-                    <span className="text-[#2563eb] underline">
-                      <a href="/support" target="_blank" rel="noopener noreferrer">
-                        Need help? Visit Support
-                      </a>
-                    </span>
-                  </div>
+                  Sign in or create your account using your wallet, seed phrase, or email.<br />
+                  <span className="text-[#2563eb] underline">
+                    <a href="/support" target="_blank" rel="noopener noreferrer">Need help? Visit Support</a>
+                  </span>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -190,12 +126,7 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
             Get In
           </div>
           <div className="flex items-center justify-end">
-            <button
-              onClick={onClose}
-              className="bg-none border-none text-[#555] text-xl cursor-pointer"
-              aria-label="Close"
-              type="button"
-            >
+            <button onClick={onClose} className="bg-none border-none text-[#555] text-xl cursor-pointer" aria-label="Close" type="button">
               <X className="h-[18px]"/>
             </button>
           </div>
@@ -204,27 +135,15 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
         <div className="w-full px-6 mb-3">
           <div className="flex w-full rounded-full bg-[#232323] p-0">
             <button
-              className={`flex-1 py-1 rounded-full font-semibold text-[12px] transition-all duration-150 cursor-pointer select-none ${
-                tab === 'login'
-                  ? 'bg-white text-black shadow'
-                  : 'bg-transparent text-[#aaa] hover:bg-[#272727]'
-              }`}
+              className={`flex-1 py-1 rounded-full font-semibold text-[12px] transition-all duration-150 cursor-pointer select-none ${tab === 'login' ? 'bg-white text-black shadow' : 'bg-transparent text-[#aaa] hover:bg-[#272727]'}`}
               onClick={() => setTab('login')}
               type="button"
-            >
-              Log In
-            </button>
+            >Log In</button>
             <button
-              className={`flex-1 py-1 rounded-full font-semibold text-[12px] transition-all duration-150 cursor-pointer select-none ${
-                tab === 'signup'
-                  ? 'bg-white text-black shadow'
-                  : 'bg-transparent text-[#aaa] hover:bg-[#272727]'
-              }`}
+              className={`flex-1 py-1 rounded-full font-semibold text-[12px] transition-all duration-150 cursor-pointer select-none ${tab === 'signup' ? 'bg-white text-black shadow' : 'bg-transparent text-[#aaa] hover:bg-[#272727]'}`}
               onClick={() => setTab('signup')}
               type="button"
-            >
-              Sign Up
-            </button>
+            >Sign Up</button>
           </div>
         </div>
         {/* Auth Options */}
@@ -254,41 +173,13 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
               )}
             </div>
             {/* Use Seed Phrase */}
-            <div className="w-full px-6">
-              {!showSeedInput ? (
-                <button
-                  className="w-full h-12 mb-3 rounded-[9px] bg-[#232323] text-white font-semibold text-base border border-[#333] cursor-pointer flex items-center px-4 hover:bg-[#272727]"
-                  type="button"
-                  onClick={handleSeedPhraseLogin}
-                >
-                  <Image src="/seed-ico.svg" alt="Seed Phrase" width={18} height={18}/>
-                  <span className="text-center flex-1">Use Seed Phrase</span>
-                </button>
-              ) : (
-                <div className="flex flex-col gap-2 w-full mb-3 rounded-[9px] bg-[#232323] text-white font-mono text-md border border-[#333] p-0 resize-none focus:outline-none focus:ring-2 focus:ring-[#444]">
-                  <textarea
-                    className="focus:outline-none p-4 h-30"
-                    rows={3}
-                    placeholder="Enter your seed phrase"
-                    value={seedValue}
-                    onChange={e => setSeedValue(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendSeed();
-                      }
-                    }}
-                  />
-                  <button
-                    className="w-full flex-1 items-center gap-2 px-4 py-2 rounded-[9px] bg-[#232323] text-white font-semibold border border-[#333] cursor-pointer hover:bg-[#272727]"
-                    type="button"
-                    onClick={handleSendSeed}
-                  >
-                    <Image src="/send-ico.svg" alt="Send" width={18} height={18} className="mx-auto"/>
-                  </button>
-                </div>
-              )}
-            </div>
+            <SeedPhraseInput
+              showSeedInput={showSeedInput}
+              setShowSeedInput={setShowSeedInput}
+              seedValue={seedValue}
+              setSeedValue={setSeedValue}
+              handleSendSeed={handleSendSeed}
+            />
           </>
         ) : (
           <>
@@ -315,32 +206,6 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
                 <div className="text-red-500 text-xs mt-2 text-center">{walletError}</div>
               )}
             </div>
-
-            {/* Social Buttons 
-            <div className="flex gap-3 px-6 mb-3 w-full">
-              <button
-                className="flex-1 h-12 rounded-[9px] bg-[#232323] flex items-center justify-center border border-[#333] cursor-pointer hover:bg-[#272727]"
-                type="button"
-                onClick={handleAppleSignIn}
-              >
-                <Image src="/apple-ico.svg" alt="Apple" width={18} height={18} />
-              </button>
-              <button
-                className="flex-1 h-12 rounded-[9px] bg-[#232323] flex items-center justify-center border border-[#333] cursor-pointer hover:bg-[#272727]"
-                type="button"
-                onClick={handleFacebookSignIn}
-              >
-                <Image src="/facebook-ico.svg" alt="Facebook" width={18} height={18} />
-              </button>
-              <button
-                className="flex-1 h-12 rounded-[9px] bg-[#232323] flex items-center justify-center border border-[#333] cursor-pointer hover:bg-[#272727]"
-                type="button"
-                onClick={handleGoogleSignIn}
-              >
-                <Image src="/google-ico.svg" alt="Google" width={18} height={18} />
-              </button>
-            </div>
-            */}
             {/* Email Input */}
             <div className="w-full px-6 mb-3">
               {!showEmailInput ? (
@@ -353,7 +218,7 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
                   <span className="text-center flex-1">Use Email</span>
                 </button>
               ) : (
-                <div className="grid grid-cols-4  gap-2 mb-2">
+                <div className="grid grid-cols-4 gap-2 mb-2">
                   <input
                     type="email"
                     className="col-span-3 w-full rounded-[9px] bg-[#232323] text-white font-mono text-md border border-[#333] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#444]"
@@ -384,19 +249,6 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
                 </div>
               )}
             </div>
-            {/* Phone Input 
-            <div className="w-full px-6 mb-6">
-              <button
-                className="w-full h-12 rounded-[9px] bg-[#232323] text-white font-semibold text-base border border-[#333] cursor-pointer flex items-center px-4 hover:bg-[#272727]"
-                type="button"
-                onClick={handlePhoneSignIn}
-              >
-                <span className="flex items-center w-full justify-center">
-                  <Image src="/phone-ico.svg" alt="Phone" width={18} height={18}/>
-                  <span className="text-center flex-1">Use Phone</span>
-                </span>
-              </button>
-            </div>*/}            
           </>
         )}
         {/* Terms */}
