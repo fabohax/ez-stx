@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { CircleHelp, X } from 'lucide-react';
 import { createStacksAccount } from '@/lib/stacksWallet';
-import walletEmailHtml from '@/lib/walletEmailHtml';
 import { useRouter } from 'next/navigation';
 import { SeedPhraseInput } from '@/components/SeedPhraseInput';
 import { validateAndGenerateWallet } from '@/lib/walletHelpers';
@@ -18,10 +17,6 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
   const [walletError, setWalletError] = useState<string | null>(null);
   const [showSeedInput, setShowSeedInput] = useState(false);
   const [seedValue, setSeedValue] = useState('');
-  const [showEmailInput, setShowEmailInput] = useState(false);
-  const [emailValue, setEmailValue] = useState('');
-  const [emailSent, setEmailSent] = useState(false);
-  const [emailError, setEmailError] = useState<string | null>(null);
 
   // Close modal after connecting wallet
   useEffect(() => {
@@ -36,7 +31,6 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
     try {
       await authenticate();
     } catch (err: unknown) {
-      // Only show error if it's not a user cancel
       const errorMessage =
         typeof err === "object" && err !== null && "message" in err && typeof (err as { message?: unknown }).message === "string"
           ? (err as { message: string }).message
@@ -47,14 +41,7 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
       ) {
         setWalletError(errorMessage || 'Failed to connect wallet.');
       }
-      // Otherwise, ignore the error
     }
-  };
-
-  const handleEmailSignIn = () => {
-    setShowEmailInput(true);
-    setEmailSent(false);
-    setEmailError(null);
   };
 
   const handleSendSeed = async () => {
@@ -72,31 +59,16 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
     }
   };
 
-  const handleSendEmail = async () => {
-    setEmailError(null); setEmailSent(false);
+  const handleCreateAccount = async () => {
     try {
-      const { mnemonic, stxPrivateKey } = await createStacksAccount();
-      const message = walletEmailHtml({
-        mnemonic,
-        stxPrivateKey,
-        baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'https://ez-stx.vercel.app',
-      });
-      const result: { error?: string } = await fetch('/api/send-wallet-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: emailValue, subject: 'Your Stacks Wallet Credentials', html: message }),
-      }).then(async res => {
-        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed to send email');
-        return {};
-      }).catch(e => ({ error: e.message }));
-      if (result.error) setEmailError(result.error || 'Failed to send email.');
-      else setEmailSent(true);
-    } catch (err: unknown) {
-      setEmailError(
-        err && typeof err === "object" && "message" in err && typeof (err as { message?: unknown }).message === "string"
-          ? (err as { message: string }).message
-          : "Failed to generate wallet."
-      );
+      const { mnemonic, stxPrivateKey, address } = await createStacksAccount();
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem('ezstx_new_wallet', JSON.stringify({ mnemonic, stxPrivateKey, address }));
+      }
+      router.push('/account');
+      if (onClose) onClose();
+    } catch {
+      alert('Failed to create account.');
     }
   };
 
@@ -206,48 +178,16 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
                 <div className="text-red-500 text-xs mt-2 text-center">{walletError}</div>
               )}
             </div>
-            {/* Email Input */}
+            {/* Create Account Button */}
             <div className="w-full px-6 mb-3">
-              {!showEmailInput ? (
-                <button
-                  className="w-full h-12 rounded-[9px] bg-[#232323] text-white font-semibold text-base border border-[#333] cursor-pointer flex items-center px-4 hover:bg-[#272727]"
-                  type="button"
-                  onClick={handleEmailSignIn}
-                >
-                  <Image src="/mail-ico.svg" alt="Mail" width={18} height={18}/>
-                  <span className="text-center flex-1">Use Email</span>
-                </button>
-              ) : (
-                <div className="grid grid-cols-4 gap-2 mb-2">
-                  <input
-                    type="email"
-                    className="col-span-3 w-full rounded-[9px] bg-[#232323] text-white font-mono text-md border border-[#333] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#444]"
-                    placeholder="Insert email"
-                    value={emailValue}
-                    onChange={e => setEmailValue(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleSendEmail();
-                      }
-                    }}
-                  />
-                  <button
-                    className="col-span-1 flex-1 items-center gap-2 px-0 py-3 rounded-[9px] bg-[#232323] text-white font-semibold border border-[#333] cursor-pointer hover:bg-[#272727]"
-                    type="button"
-                    onClick={handleSendEmail}
-                    disabled={!emailValue}
-                  >
-                    <Image src="/send-ico.svg" alt="Send" width={18} height={18} className="mx-auto"/>
-                  </button>
-                  {emailSent && (
-                    <div className="col-span-4 text-green-500 text-xs mt-1 text-center">Email sent! Check your inbox.</div>
-                  )}
-                  {emailError && (
-                    <div className="col-span-4 text-red-500 text-xs mt-1 text-center">{emailError}</div>
-                  )}
-                </div>
-              )}
+              <Button
+                onClick={handleCreateAccount}
+                className="w-full h-12 rounded-[9px] bg-[#2563eb] text-white font-semibold text-base border border-[#2563eb] cursor-pointer flex items-center px-4 hover:bg-[#1d4ed8]"
+                type="button"
+              >
+                <Image src="/seed-ico.svg" alt="Seed Phrase" width={18} height={18}/>
+                <span className="text-center flex-1">Create Account</span>
+              </Button>
             </div>
           </>
         )}
