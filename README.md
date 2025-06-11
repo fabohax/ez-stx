@@ -1,14 +1,14 @@
 # ez-stx
 
-**EZ Onboarding to Stacks dApps with Email or Phone**
+**EZ Onboarding to Stacks dApps**
 
-This repo implements a smooth Web2-style onboarding flow to Stacks dApps, allowing users to log in using their email or phone and automatically receive a Stacks wallet. Ideal for onboarding non-crypto users without friction.
+This repo implements a smooth Web2-style onboarding flow to Stacks dApps, allowing users to create or connect a Stacks wallet in-browser. Ideal for onboarding non-crypto users without friction.
 
 ## 🚀 Features
 
-- 🔐 Email or phone-based login (OAuth or OTP)
 - 🔑 Auto-generated Stacks wallet (via Stacks.js)
-- 📩 Magic login links with encrypted seed delivery
+- 🦊 Connect with Stacks wallet browser extensions (e.g. Hiro Wallet)
+- 🌐 In-browser account creation with seed phrase backup
 - 🔄 Session-based authentication & wallet loading
 - ⚡ Built with [Next.js](https://nextjs.org/), TypeScript, and TailwindCSS
 
@@ -17,9 +17,7 @@ This repo implements a smooth Web2-style onboarding flow to Stacks dApps, allowi
 ## 🧩 Stack
 
 - **Frontend**: Next.js + TailwindCSS
-- **Wallet**: [Stacks.js](https://github.com/hirosystems/stacks.js)
-- **Auth**: Magic link system (custom or Firebase Auth)
-- **Storage**: Encrypted wallet seed (optionally in Supabase, Firebase, or your DB)
+- **Wallet**: [Stacks.js](https://github.com/hirosystems/stacks.js), Hiro Wallet extension support
 
 ---
 
@@ -29,7 +27,8 @@ This repo implements a smooth Web2-style onboarding flow to Stacks dApps, allowi
 git clone https://github.com/fabohax/ez-stx
 cd ez-stx
 npm install
-````
+```
+
 ---
 
 ## 🧪 Run Locally
@@ -37,6 +36,15 @@ npm install
 ```bash
 npm run dev
 ```
+
+---
+
+## 📝 How It Works
+
+- **Connect Wallet**: Users can connect with a browser wallet extension (like Hiro Wallet) for instant login.
+- **Create Account**: Users can create a new Stacks account directly in the browser. The app generates a seed phrase and private key, which the user must save. After confirmation, a session is started and the user is redirected to their profile.
+- **Seed Phrase Login**: Users can log in using their existing seed phrase.
+- **Session Management**: All authentication methods create a session in localStorage for seamless UX.
 
 ---
 
