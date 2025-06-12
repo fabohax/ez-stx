@@ -67,7 +67,7 @@ export const GetInButton = (buttonProps: GetInButtonProps) => {
 
   if (isSessionLoggedIn) {
     return (
-      <div className='fixed top-8 right-8'>
+      <div className='fixed top-8 right-8 z-100'>
         <button
           type="button"
           className="w-12 h-12 bg-gradient-to-br from-gray-300 to-gray-500 rounded-full p-4 cursor-pointer select-none"
@@ -83,7 +83,7 @@ export const GetInButton = (buttonProps: GetInButtonProps) => {
   return (
     <>
       {isWalletConnected ? (
-        <div className='fixed top-8 right-8'>
+        <div className='fixed top-8 right-8 z-100'>
           <button
             type="button"
             className="w-12 h-12 bg-gradient-to-br from-gray-300 to-gray-500 rounded-full p-4 cursor-pointer select-none"
@@ -91,9 +91,10 @@ export const GetInButton = (buttonProps: GetInButtonProps) => {
             aria-label="Profile"
           >
           </button>
+          {showUserModal && <UserModal onClose={() => setShowUserModal(false)} />}
         </div>
       ) : (
-        <div className='fixed top-6 right-6'>
+        <div className='fixed top-6 right-6 z-100'>
           <Button
             onClick={() => setShowGetInModal(true)}
             className="title rounded-full px-9 py-6 bg-[#E9E9E9] hover:bg-[#000] text-black hover:text-white border-2 border-black hover:border-2 hover:border-white cursor-pointer select-none"
