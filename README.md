@@ -2,7 +2,7 @@
 
 ## EZ Onboarding to Stacks dApps
 
-![EZ-STX SCREENSHOT][/public/ezstx-screen.png]
+![EZ-STX SCREENSHOT][./ezstx-screen.png]
 
 This repo implements a smooth Web2-style onboarding flow to Stacks dApps, allowing users to create or connect a Stacks wallet in-browser. Ideal for onboarding non-crypto users without friction.
 
