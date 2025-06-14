@@ -123,7 +123,7 @@ export default function GetInModal({ onClose }: { onClose?: () => void }) {
               className="w-full h-12 rounded-[9px] bg-[#2563eb] text-white font-semibold text-base border border-[#2563eb] cursor-pointer flex items-center px-4 hover:bg-[#1d4ed8]"
               type="button"
             >
-              <Image src="/seed-ico.svg" alt="Seed Phrase" width={18} height={18}/>
+              <Image src="/add-ico.svg" alt="Seed Phrase" width={18} height={18}/>
               <span className="text-center flex-1">Create Account</span>
             </Button>
           </div>
