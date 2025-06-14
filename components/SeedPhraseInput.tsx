@@ -17,7 +17,7 @@ export function SeedPhraseInput({
   handleSendSeed,
 }: SeedPhraseInputProps) {
   return (
-    <div className="w-full px-6">
+    <div className="w-full px-0">
       {!showSeedInput ? (
         <button
           className="w-full h-12 mb-3 rounded-[9px] bg-[#232323] text-white font-semibold text-base border border-[#333] cursor-pointer flex items-center px-4 hover:bg-[#272727]"
